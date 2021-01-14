@@ -22,6 +22,8 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    bool _dbLoaded;
+
     QSqlDatabase _db;
     QSqlQuery _query;
 

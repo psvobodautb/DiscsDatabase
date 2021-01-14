@@ -11,6 +11,7 @@
 #include <QShowEvent>
 #include <QAction>
 #include <QFileDialog>
+#include <QCoreApplication>
 
 //#include <QtSql/QSql>
 #include <QtSql/QSqlRecord>
@@ -32,45 +33,54 @@ MainWindow::MainWindow(QWidget *parent)
                             + settings.value("App/dbPath").toString());
 
         _db.open();
+        _dbLoaded = true;
+    }
+    else{
+        qDebug() << "Aplikace není správně nakonfigurována - instrukce najdete v README";
+        _dbLoaded = false;
+        QMetaObject::invokeMethod(this, "close", Qt::QueuedConnection);
     }
 
-    _query = QSqlQuery(_db);
-    _query.exec("Select * from album");
 
-    _albumsModel = new QStandardItemModel(this);
+    if(_dbLoaded == true){
+        _query = QSqlQuery(_db);
+        _query.exec("Select * from album");
 
-    while(_query.next()){
-        int id = _query.value("albumID").toInt();
-        QString name = _query.value("name").toString();
+        _albumsModel = new QStandardItemModel(this);
 
-        QStandardItem* item = new QStandardItem(name);
-        item->setData(id,ALBUMID);
-        item->setEditable(false);
-        item->setSelectable(false);
-        _albumsModel->appendRow(item);
+        while(_query.next()){
+            int id = _query.value("albumID").toInt();
+            QString name = _query.value("name").toString();
+
+            QStandardItem* item = new QStandardItem(name);
+            item->setData(id,ALBUMID);
+            item->setEditable(false);
+            item->setSelectable(false);
+            _albumsModel->appendRow(item);
+        }
+
+        ui->listViewAlbums->setModel(_albumsModel);
+        connect(ui->listViewAlbums,&QListView::clicked,this,&MainWindow::OnAlbumSelection);
+
+        _songsModel = new QStandardItemModel(this);
+
+        _currentAlbumID = 0;
+
+        if(ui->listViewAlbums->model()->rowCount()>0)
+            _currentAlbumID = ui->listViewAlbums->model()->index(0,0).data(ALBUMID).toInt();
+
+        SelectAndShowAlbum(_currentAlbumID);
+
+        connect(ui->albumsFilter,&QLineEdit::textEdited,this,&MainWindow::SelectAlbums);
+
+        connect(ui->radioButtonAuthor,&QRadioButton::clicked,this,&MainWindow::SetFilterByAuthors);
+        connect(ui->radioButtonGenre,&QRadioButton::clicked,this,&MainWindow::SetFilterByGenre);
+        connect(ui->radioButtonYear,&QRadioButton::clicked,this,&MainWindow::SetFilterByYear);
+
+        connect(ui->btnChangeImage,&QPushButton::released,this,&MainWindow::OnBtnChangeImageClick);
+
+        SetFilterByAuthors();
     }
-
-    ui->listViewAlbums->setModel(_albumsModel);
-    connect(ui->listViewAlbums,&QListView::clicked,this,&MainWindow::OnAlbumSelection);
-
-    _songsModel = new QStandardItemModel(this);
-
-    _currentAlbumID = 0;
-
-    if(ui->listViewAlbums->model()->rowCount()>0)
-        _currentAlbumID = ui->listViewAlbums->model()->index(0,0).data(ALBUMID).toInt();
-
-    SelectAndShowAlbum(_currentAlbumID);
-
-    connect(ui->albumsFilter,&QLineEdit::textEdited,this,&MainWindow::SelectAlbums);
-
-    connect(ui->radioButtonAuthor,&QRadioButton::clicked,this,&MainWindow::SetFilterByAuthors);
-    connect(ui->radioButtonGenre,&QRadioButton::clicked,this,&MainWindow::SetFilterByGenre);
-    connect(ui->radioButtonYear,&QRadioButton::clicked,this,&MainWindow::SetFilterByYear);
-
-    connect(ui->btnChangeImage,&QPushButton::released,this,&MainWindow::OnBtnChangeImageClick);
-
-    SetFilterByAuthors();
 }
 
 MainWindow::~MainWindow()
@@ -180,7 +190,7 @@ void MainWindow::SelectAndShowAlbum(int albumID)
     QString genreText = "";
     QString imgPath = "";
 
-    if(_query.next()){
+    if(_query.next()){qApp->quit();
         year = _query.value("year").toInt();
         authorText = _query.value("author").toString();
         albumText = _query.value("album").toString();

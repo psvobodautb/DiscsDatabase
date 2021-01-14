@@ -1,0 +1,49 @@
+--
+-- File generated with SQLiteStudio v3.2.1 on st lis 25 18:41:47 2020
+--
+-- Text encoding used: System
+--
+PRAGMA foreign_keys = off;
+BEGIN TRANSACTION;
+
+-- Table: album
+DROP TABLE IF EXISTS album;
+CREATE TABLE album (albumID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT (0, 100));
+INSERT INTO album (albumID, name) VALUES (1, 'Corrida');
+INSERT INTO album (albumID, name) VALUES (2, 'Dole v dole');
+INSERT INTO album (albumID, name) VALUES (3, 'Do pekla/do nebe');
+
+-- Table: author
+DROP TABLE IF EXISTS author;
+CREATE TABLE author (authorID INTEGER PRIMARY KEY NOT NULL UNIQUE, name TEXT (0, 100) NOT NULL);
+INSERT INTO author (authorID, name) VALUES (1, 'KABÁT');
+
+-- Table: discs
+DROP TABLE IF EXISTS discs;
+CREATE TABLE discs (discID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, authorID INTEGER NOT NULL REFERENCES author (authorID), albumID INTEGER NOT NULL REFERENCES album (albumID), year INTEGER NOT NULL, genreID INTEGER NOT NULL REFERENCES genre (genreID));
+INSERT INTO discs (discID, authorID, albumID, year, genreID) VALUES (1, 1, 1, 2006, 1);
+
+-- Table: genre
+DROP TABLE IF EXISTS genre;
+CREATE TABLE genre (genreID INTEGER PRIMARY KEY NOT NULL, name TEXT (0, 100) NOT NULL);
+INSERT INTO genre (genreID, name) VALUES (1, 'Rock');
+INSERT INTO genre (genreID, name) VALUES (2, 'Pop');
+
+-- Table: song
+DROP TABLE IF EXISTS song;
+CREATE TABLE song (songID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name TEXT (0, 100) NOT NULL, albumID INTEGER REFERENCES album (albumID) NOT NULL, lengthInSec INTEGER NOT NULL);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (1, 'Corrida', 1, 175);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (2, 'Burlaci', 1, 277);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (3, 'Malá dáma', 1, 206);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (4, 'Úsmìv pana Lloyda', 1, 174);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (5, 'Kostlivci', 1, 170);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (6, 'Raci v práci s.r.o.', 1, 187);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (7, 'Virtuóz', 1, 153);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (8, 'Buldozerem', 1, 171);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (9, 'Joy', 1, 91);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (10, 'Cesta do Kadanì', 1, 192);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (11, 'Kùže líná od Kolína', 1, 126);
+INSERT INTO song (songID, name, albumID, lengthInSec) VALUES (12, 'Kdoví jestli', 1, 337);
+
+COMMIT TRANSACTION;
+PRAGMA foreign_keys = on;
